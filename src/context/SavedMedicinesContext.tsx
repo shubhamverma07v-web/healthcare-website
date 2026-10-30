@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from './ToastContext';
 
@@ -12,17 +13,23 @@ const SavedMedicinesContext = createContext<SavedMedicinesContextType | undefine
 
 export const SavedMedicinesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { showToast } = useToast();
+
   const [savedIds, setSavedIds] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem('mediguide_saved_medicines');
-      return stored ? JSON.parse(stored) : ['med-metformin', 'med-atorvastatin'];
+      if (!stored) return [];
+      return JSON.parse(stored) as string[];
     } catch {
-      return ['med-metformin', 'med-atorvastatin'];
+      return [];
     }
   });
 
   useEffect(() => {
-    localStorage.setItem('mediguide_saved_medicines', JSON.stringify(savedIds));
+    try {
+      localStorage.setItem('mediguide_saved_medicines', JSON.stringify(savedIds));
+    } catch (error) {
+      console.error('Could not save medicines:', error);
+    }
   }, [savedIds]);
 
   const isSaved = (id: string) => savedIds.includes(id);
@@ -30,23 +37,26 @@ export const SavedMedicinesProvider: React.FC<{ children: React.ReactNode }> = (
   const toggleSave = (id: string, name?: string) => {
     setSavedIds(prev => {
       const exists = prev.includes(id);
+
       if (exists) {
         showToast(`Removed ${name || 'medicine'} from saved medicines`, 'info');
         return prev.filter(item => item !== id);
-      } else {
-        showToast(`Added ${name || 'medicine'} to saved medicines`, 'success');
-        return [...prev, id];
       }
+
+      showToast(`Added ${name || 'medicine'} to saved medicines`, 'success');
+      return [...prev, id];
     });
   };
 
   const clearSaved = () => {
     setSavedIds([]);
-    localStorage.removeItem('mediguide_saved_medicines');
+    showToast('Saved medicines cleared', 'info');
   };
 
   return (
-    <SavedMedicinesContext.Provider value={{ savedIds, isSaved, toggleSave, clearSaved }}>
+    <SavedMedicinesContext.Provider
+      value={{ savedIds, isSaved, toggleSave, clearSaved }}
+    >
       {children}
     </SavedMedicinesContext.Provider>
   );
@@ -54,8 +64,10 @@ export const SavedMedicinesProvider: React.FC<{ children: React.ReactNode }> = (
 
 export const useSavedMedicines = (): SavedMedicinesContextType => {
   const context = useContext(SavedMedicinesContext);
+
   if (!context) {
     throw new Error('useSavedMedicines must be used within a SavedMedicinesProvider');
   }
+
   return context;
 };

@@ -1,6 +1,6 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ReminderItem, ReminderStatus } from '../types';
-import { INITIAL_REMINDERS } from '../data/reminders';
 import { useToast } from './ToastContext';
 
 interface RemindersContextType {
@@ -23,17 +23,23 @@ const RemindersContext = createContext<RemindersContextType | undefined>(undefin
 
 export const RemindersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { showToast } = useToast();
+
   const [reminders, setReminders] = useState<ReminderItem[]>(() => {
     try {
       const stored = localStorage.getItem('mediguide_reminders');
-      return stored ? JSON.parse(stored) : INITIAL_REMINDERS;
+      if (!stored) return [];
+      return JSON.parse(stored) as ReminderItem[];
     } catch {
-      return INITIAL_REMINDERS;
+      return [];
     }
   });
 
   useEffect(() => {
-    localStorage.setItem('mediguide_reminders', JSON.stringify(reminders));
+    try {
+      localStorage.setItem('mediguide_reminders', JSON.stringify(reminders));
+    } catch (error) {
+      console.error('Could not save reminders:', error);
+    }
   }, [reminders]);
 
   const addReminder = (data: Omit<ReminderItem, 'id'>) => {
@@ -41,12 +47,15 @@ export const RemindersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       ...data,
       id: `rem-${Date.now()}`
     };
+
     setReminders(prev => [newReminder, ...prev]);
     showToast(`Added schedule reminder for ${data.medicineName}`, 'success');
   };
 
   const updateReminder = (id: string, updated: Partial<ReminderItem>) => {
-    setReminders(prev => prev.map(item => item.id === id ? { ...item, ...updated } : item));
+    setReminders(prev =>
+      prev.map(item => item.id === id ? { ...item, ...updated } : item)
+    );
     showToast('Reminder updated successfully', 'success');
   };
 
@@ -57,17 +66,22 @@ export const RemindersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const updateStatus = (id: string, status: ReminderStatus) => {
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setReminders(prev => prev.map(item => {
-      if (item.id === id) {
-        return {
-          ...item,
-          status,
-          statusTimestamp: status === 'taken' ? now : undefined
-        };
-      }
-      return item;
-    }));
+    const now = new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    setReminders(prev =>
+      prev.map(item =>
+        item.id === id
+          ? {
+              ...item,
+              status,
+              statusTimestamp: status === 'taken' ? now : undefined
+            }
+          : item
+      )
+    );
 
     if (status === 'taken') {
       showToast('Logged dose as taken!', 'success');
@@ -79,9 +93,8 @@ export const RemindersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const resetReminders = () => {
-    setReminders(INITIAL_REMINDERS);
-    localStorage.setItem('mediguide_reminders', JSON.stringify(INITIAL_REMINDERS));
-    showToast('Demo reminders reset to initial sample state', 'info');
+    setReminders([]);
+    showToast('Reminders cleared', 'info');
   };
 
   const total = reminders.length;
@@ -109,8 +122,10 @@ export const RemindersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
 export const useReminders = (): RemindersContextType => {
   const context = useContext(RemindersContext);
+
   if (!context) {
     throw new Error('useReminders must be used within a RemindersProvider');
   }
+
   return context;
 };

@@ -31,6 +31,17 @@ import { ReminderItem } from '../types';
 
 export const DashboardPage: React.FC = () => {
   const { t } = useLanguage();
+  const currentUser = (() => {
+  try {
+    const savedUser = localStorage.getItem('curaguide_user');
+const currentUser = savedUser ? JSON.parse(savedUser) : null;
+const userName = currentUser?.fullName || 'User';
+  } catch {
+    return null;
+  }
+})();
+
+const userName = currentUser?.fullName || 'User';
   const navigate = useNavigate();
   const { reminders, stats, updateStatus, addReminder, updateReminder, deleteReminder } = useReminders();
   const { savedIds } = useSavedMedicines();
@@ -63,7 +74,7 @@ export const DashboardPage: React.FC = () => {
             <span>Interactive Demo Patient Session</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#102A43] dark:text-white tracking-tight">
-            Welcome back, Alex Morgan
+            Welcome back, {userName}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {t('dashboard.subtitle')}

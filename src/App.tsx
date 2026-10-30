@@ -12,10 +12,15 @@ import { FacilitiesPage } from './pages/FacilitiesPage';
 import { AssistantPage } from './pages/AssistantPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { LoginPage } from './auth/LoginPage';
+import { SignupPage } from './auth/SignupPage';
+
 
 export const App: React.FC = () => {
   return (
     <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
       {/* Public Pages with Marketing Nav & Footer */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
