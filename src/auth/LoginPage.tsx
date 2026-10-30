@@ -1,3 +1,4 @@
+import { API_URL } from '../api';
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -37,7 +38,7 @@ export const LoginPage: React.FC = () => {
 
     try {
       const response = await fetch(
-        'http://localhost:5000/api/auth/login',
+        API_URL + '/api/auth/login',
         {
           method: 'POST',
           headers: {
@@ -205,3 +206,7 @@ export const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
+
+
+
+

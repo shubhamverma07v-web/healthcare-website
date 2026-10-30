@@ -99,7 +99,7 @@ export interface DigitalRecord {
   fileType: 'pdf' | 'png' | 'jpg';
   previewUrl?: string;
   notes?: string;
-  isDemoRecord: true;
+  isDemoRecord: boolean;
 }
 
 export interface AssistantMessage {
@@ -114,3 +114,4 @@ export interface AssistantMessage {
 
 export type LanguageMode = 'en' | 'hi';
 export type ThemeMode = 'light' | 'dark';
+

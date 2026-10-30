@@ -1,3 +1,4 @@
+import { API_URL } from '../api';
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -44,7 +45,7 @@ export const SignupPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/signup', {
+      const response = await fetch(API_URL + '/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -216,3 +217,4 @@ export const SignupPage: React.FC = () => {
 };
 
 export default SignupPage;
+
